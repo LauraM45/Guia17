@@ -30,10 +30,30 @@ def productor(id_prod, cola):
         print(f"  [Prod {id_prod}] produjo {tarea}. (Cola: {cola.qsize()})")
         
     print(f"[Prod {id_prod}] Finalizó su producción.")
-def consumidor(id_cons, cola):
-    """Extrae elementos de la cola y los procesa."""
-    pass # TODO: completar implementación
 
+def consumidor(id_cons, cola):
+    """Extrae elementos de la cola y los procesa. Espera el SENTINEL para detenerse."""
+    print(f"  [Cons {id_cons}] Iniciado.")
+    
+    while True:
+        # Bloquea hasta que haya un elemento
+        tarea = cola.get() 
+        
+        if tarea is SENTINEL:
+            cola.task_done()       # Notifica que el SENTINEL fue procesado (necesario para cola.join())
+            cola.put(SENTINEL)     # Vuelve a poner la señal para el próximo consumidor
+            break # Sale del bucle While, terminando el hilo
+            
+        print(f"    [Cons {id_cons}] procesando {tarea}...")
+        
+        # Simula tiempo de procesamiento
+        time.sleep(random.uniform(0.5, 1.5))
+        
+        # NOTIFICACIÓN CLAVE: Marca la tarea REAL como terminada
+        cola.task_done() 
+        print(f"    [Cons {id_cons}] completó {tarea}.")
+
+    print(f"  [Cons {id_cons}] Finalizado.")
 def main():
     """Crea productores, consumidores y mide el tiempo total."""
     inicio = time.time()
