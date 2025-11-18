@@ -54,22 +54,51 @@ def consumidor(id_cons, cola):
         print(f"    [Cons {id_cons}] completó {tarea}.")
 
     print(f"  [Cons {id_cons}] Finalizado.")
+
 def main():
     """Crea productores, consumidores y mide el tiempo total."""
+    print("--- Sistema Productor-Consumidor Iniciado ---")
     inicio = time.time()
     
     # 1. Inicialización de la cola (recurso compartido y sincronizado)
-    cola = queue.Queue(maxsize=5)
+    cola = queue.Queue(maxsize=COLA_MAX_SIZE)
     
-    # 2. Listas para almacenar los objetos Thread
-    productores = []
-    consumidores = []
+    # 2. Creación de hilos
+    hilos_productores = [threading.Thread(target=productor, args=(i, cola), name=f"Prod-{i}") 
+                         for i in range(1, NUM_PRODUCTORES + 1)]
+    hilos_consumidores = [threading.Thread(target=consumidor, args=(i, cola), name=f"Cons-{i}") 
+                          for i in range(1, NUM_CONSUMIDORES + 1)]
     
-    # TODO: crear hilos productores y consumidores
-    # TODO: iniciar, unir y medir tiempos
-    
-    fin = time.time()
-    print(f"Tiempo total: {fin - inicio:.2f} segundos")
+    # 3. Iniciar todos los hilos
+    for h in hilos_consumidores + hilos_productores:
+        h.start()
 
+    # 4. Esperar a que TODOS los productores terminen su trabajo
+    for h in hilos_productores:
+        h.join()
+    
+    print("\n[INFO] Productores terminaron. Esperando a que la cola se vacíe (cola.join())...")
+
+    # 5. SINCRONIZACIÓN CENTRAL: Esperar a que todos los elementos añadidos sean procesados (task_done llamado)
+    cola.join() 
+    
+    print("[INFO] Todos los elementos originales han sido procesados. Enviando señales de parada (SENTINEL)...")
+
+    # 6. ENVIAR SEÑAL DE PARADA: Poner el SENTINEL tantas veces como consumidores haya.
+    for _ in range(NUM_CONSUMIDORES):
+        cola.put(SENTINEL)
+        
+    # 7. Esperar a que los consumidores terminen (lean el SENTINEL y salgan)
+    for h in hilos_consumidores:
+        h.join()
+
+    # 8. Métrica y finalización
+    fin = time.time()
+    
+    print("\n--- Resultados ---")
+    print(f"Tareas totales: {NUM_PRODUCTORES * TAREAS_POR_PRODUCTOR}")
+    print(f"Tiempo total: {fin - inicio:.2f} segundos")
+    print("--- Sistema Productor-Consumidor Finalizado con éxito ---")
+    
 if __name__ == "__main__":
     main()
