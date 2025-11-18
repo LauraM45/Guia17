@@ -5,6 +5,14 @@ Autor: (nombre del estudiante)
 Fecha: (dd/mm/aaaa)
 """
 import threading, queue, time, random
+# --- Configuración Global ---
+NUM_PRODUCTORES = 2
+NUM_CONSUMIDORES = 3
+TAREAS_POR_PRODUCTOR = 5
+COLA_MAX_SIZE = 5
+
+# Objeto 'Sentinel': valor especial para indicar a los consumidores que deben detenerse.
+SENTINEL = object()
 
 def productor(id_prod, cola):
     """Genera elementos y los coloca en la cola compartida."""
