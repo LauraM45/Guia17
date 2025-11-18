@@ -16,8 +16,20 @@ SENTINEL = object()
 
 def productor(id_prod, cola):
     """Genera elementos y los coloca en la cola compartida."""
-    pass # TODO: completar implementación
-
+    print(f"[Prod {id_prod}] Iniciado. Producirá {TAREAS_POR_PRODUCTOR} tareas.")
+    
+    for i in range(TAREAS_POR_PRODUCTOR):
+        # Simula tiempo de generación
+        tiempo_espera = random.uniform(0.3, 1.0)
+        time.sleep(tiempo_espera)
+        
+        tarea = f"Tarea-{id_prod}-{i}"
+        
+        # put() se bloquea si la cola está llena (sincronización automática)
+        cola.put(tarea) 
+        print(f"  [Prod {id_prod}] produjo {tarea}. (Cola: {cola.qsize()})")
+        
+    print(f"[Prod {id_prod}] Finalizó su producción.")
 def consumidor(id_cons, cola):
     """Extrae elementos de la cola y los procesa."""
     pass # TODO: completar implementación
